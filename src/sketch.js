@@ -1,6 +1,10 @@
 const COLS = 7
 const ROWS = 6
 
+/**************************************************
+ * UI CONSTANTS
+ **************************************************/
+
 const CELL_MARGIN = 15
 const CELL_WIDTH = 100
 const CELL_HEIGHT = CELL_WIDTH
@@ -20,11 +24,17 @@ const BOARD_HEIGHT = (ROWS * CELL_HEIGHT)
 const CANVAS_WIDTH = BOARD_LEFT_MARGIN + BOARD_WIDTH + BOARD_RIGHT_MARGIN
 const CANVAS_HEIGHT = BOARD_TOP_MARGIN + BOARD_HEIGHT + BOARD_BOTTOM_MARGIN
 
+const EMPTY_CELL = 0
+const HUMAN_CELL = 1
+const COMPUTER_CELL = 2
+
+/**************************************************
+ * GLOBALS
+ **************************************************/
+
+var board;
 
 function preload() {
-  // Ensure the .ttf or .otf font stored in the assets directory
-  // is loaded before setup() and draw() are called
-  //font = loadFont('https://github.com/opentypejs/opentype.js/raw/master/fonts/SourceSansPro-Regular.otf');
 }
 
 function setup() {
@@ -33,6 +43,7 @@ function setup() {
   
   textSize(40);
   textAlign(CENTER, CENTER);
+  initialise_board()
 }
 
 function set_top_label(label_text) {
@@ -70,7 +81,15 @@ function draw_board() {
             if ((row == -1) && (col == over_col)) {
                 fill(255, 0, 0);
             } else {
-                fill(255);
+                if (board[col][row] == HUMAN_CELL) {
+                    //console.log("Setting to red")
+                    fill(255, 0, 0);
+                } else if (board[col][row] == COMPUTER_CELL) {
+                    //console.log("Setting to yellow")
+                    fill(255, 255, 0);
+                } else {
+                    fill(255);
+                }
             }
             ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
                     BOARD_TOP_MARGIN + (row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
@@ -78,10 +97,18 @@ function draw_board() {
                     CELL_HEIGHT - (1 * CELL_MARGIN));
         }
     }
+    //console.log("------")
 }
 
 function draw() {
   if (mouseIsPressed) {
   }
   draw_board()
+}
+
+function initialise_board() {
+   board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
+   board[0][5] = HUMAN_CELL
+   board[1][5] = COMPUTER_CELL
+   console.log(board);
 }
