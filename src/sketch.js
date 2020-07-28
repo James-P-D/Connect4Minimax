@@ -2,7 +2,7 @@ const COLS = 7
 const ROWS = 6
 
 const CELL_MARGIN = 15
-const CELL_WIDTH = 70
+const CELL_WIDTH = 100
 const CELL_HEIGHT = CELL_WIDTH
 
 const TOP_LABEL_HEIGHT = 100
@@ -28,53 +28,54 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
-  frameRate(30)
+  createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+  frameRate(30);
   
-  //textFont(font);
-  textSize(32);
+  textSize(40);
   textAlign(CENTER, CENTER);
-  
-  stroke(0) // Set line color to black
-  fill(255) // Set fill color to white
-  rect(0, 0, CANVAS_WIDTH - 1, CANVAS_HEIGHT - 1)
 }
 
 function set_top_label(label_text) {
-    stroke(0) // Black
-    fill(0) // Black
+    stroke(0); // Black
+    fill(0);   // Black
     text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
 }
 
 function set_bottom_label(label_text) {
-    stroke(0) // Black
-    fill(0) // Black
-    text(label_text, CANVAS_WIDTH / 2,  BOARD_TOP_MARGIN + BOARD_HEIGHT + (BOTTOM_LABEL_HEIGHT / 2)); 
+    stroke(0); // Black
+    fill(0);   // Black
+    text(label_text, CANVAS_WIDTH / 2, BOARD_TOP_MARGIN + BOARD_HEIGHT + (BOTTOM_LABEL_HEIGHT / 2)); 
 }
 
-
 function draw_board() {
+    //console.log("draw_board()");
     background(255);
     
-    stroke(0) // Black
-    fill(0, 0, 255) // Blue
-    rect(BOARD_LEFT_MARGIN, BOARD_TOP_MARGIN, BOARD_WIDTH, BOARD_HEIGHT)
+    stroke(0);       // Black
+    fill(0, 0, 255); // Blue
+    rect(BOARD_LEFT_MARGIN, BOARD_TOP_MARGIN, BOARD_WIDTH, BOARD_HEIGHT);
+        
+    //set_top_label(date);
+    //set_bottom_label(date);
     
-    var today = new Date();
-    var date = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    fill(255); // White
     
-    set_top_label(date);
-    set_bottom_label(date);
+    let over_col = -1;
+    if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
+        over_col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);        
+    }
     
-    fill(255) // White
-    
-    for(let col = 0; col < COLS; col++) {
-        for(let row = -1; row < ROWS; row++) {            
+    for (let col = 0; col < COLS; col++) {
+        for (let row = -1; row < ROWS; row++) {            
+            if ((row == -1) && (col == over_col)) {
+                fill(255, 0, 0);
+            } else {
+                fill(255);
+            }
             ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
                     BOARD_TOP_MARGIN + (row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
                     CELL_WIDTH - (1 * CELL_MARGIN),
-                    CELL_HEIGHT - (1 * CELL_MARGIN))
-            
+                    CELL_HEIGHT - (1 * CELL_MARGIN));
         }
     }
 }
