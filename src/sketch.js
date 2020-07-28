@@ -6,13 +6,13 @@ const CELL_WIDTH = 70
 const CELL_HEIGHT = CELL_WIDTH
 
 const TOP_LABEL_HEIGHT = 100
-
 const TOP_DROP_CIRCLES_HEIGHT = 100
+const BOTTOM_LABEL_HEIGHT = 100
 
 const BOARD_LEFT_MARGIN = 100
 const BOARD_RIGHT_MARGIN = 100
 const BOARD_TOP_MARGIN = TOP_LABEL_HEIGHT + TOP_DROP_CIRCLES_HEIGHT
-const BOARD_BOTTOM_MARGIN = 100
+const BOARD_BOTTOM_MARGIN = BOTTOM_LABEL_HEIGHT
 
 const BOARD_WIDTH = (COLS * CELL_WIDTH)
 const BOARD_HEIGHT = (ROWS * CELL_HEIGHT)
@@ -43,8 +43,15 @@ function setup() {
 function set_top_label(label_text) {
     stroke(0) // Black
     fill(0) // Black
-    text(label_text, CANVAS_WIDTH / 2, TOP_DROP_CIRCLES_HEIGHT / 2);    
+    text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
 }
+
+function set_bottom_label(label_text) {
+    stroke(0) // Black
+    fill(0) // Black
+    text(label_text, CANVAS_WIDTH / 2,  BOARD_TOP_MARGIN + BOARD_HEIGHT + (BOTTOM_LABEL_HEIGHT / 2)); 
+}
+
 
 function draw_board() {
     background(255);
@@ -57,6 +64,7 @@ function draw_board() {
     var date = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
     
     set_top_label(date);
+    set_bottom_label(date);
     
     fill(255) // White
     
