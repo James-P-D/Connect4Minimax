@@ -33,6 +33,8 @@ const COMPUTER_CELL = 2
  **************************************************/
 
 var board;
+var human_goes_first = true;
+var current_turn_human = human_goes_first;
 
 function preload() {
 }
@@ -58,6 +60,10 @@ function set_bottom_label(label_text) {
     text(label_text, CANVAS_WIDTH / 2, BOARD_TOP_MARGIN + BOARD_HEIGHT + (BOTTOM_LABEL_HEIGHT / 2)); 
 }
 
+function mousePressed() {
+    console.log("mousepressed");
+}
+
 function draw_board() {
     //console.log("draw_board()");
     background(255);
@@ -65,15 +71,26 @@ function draw_board() {
     stroke(0);       // Black
     fill(0, 0, 255); // Blue
     rect(BOARD_LEFT_MARGIN, BOARD_TOP_MARGIN, BOARD_WIDTH, BOARD_HEIGHT);
-        
+    
+    if (current_turn_human) {
+        set_top_label("HUMAN TURN");
+    } else {
+        set_top_label("COMPUTER TURN");
+    }
     //set_top_label(date);
     //set_bottom_label(date);
     
     fill(255); // White
     
     let over_col = -1;
-    if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
-        over_col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);        
+    // Only bother checking for mouse-over the top row of cells if it's a human turn
+    if (current_turn_human) {
+        if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
+            let col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
+            if (board[col][0] == EMPTY_CELL) {
+                over_col = col;
+            }
+        }
     }
     
     for (let col = 0; col < COLS; col++) {
@@ -108,7 +125,5 @@ function draw() {
 
 function initialise_board() {
    board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
-   board[0][5] = HUMAN_CELL
-   board[1][5] = COMPUTER_CELL
    console.log(board);
 }
