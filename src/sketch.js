@@ -35,6 +35,8 @@ const COMPUTER_CELL = 2
 var board;
 var human_goes_first = true;
 var current_turn_human = human_goes_first;
+var animating_col = -1;
+var animating_row = -1;
 
 function preload() {
 }
@@ -61,7 +63,25 @@ function set_bottom_label(label_text) {
 }
 
 function mousePressed() {
-    console.log("mousepressed");
+    let col = get_over_cell_column();
+    if (col != -1) {
+        animating_col = col;
+        animating_row = -1;
+    }
+}
+
+function get_over_cell_column() {
+    console.log(board);
+    if (current_turn_human) {
+        if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
+            let col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
+            if (board[col][0] == EMPTY_CELL) {
+                return col;
+            }
+        }
+    }
+    
+    return -1;
 }
 
 function draw_board() {
@@ -82,17 +102,9 @@ function draw_board() {
     
     fill(255); // White
     
-    let over_col = -1;
+    let over_col = get_over_cell_column();
     // Only bother checking for mouse-over the top row of cells if it's a human turn
-    if (current_turn_human) {
-        if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
-            let col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
-            if (board[col][0] == EMPTY_CELL) {
-                over_col = col;
-            }
-        }
-    }
-    
+        
     for (let col = 0; col < COLS; col++) {
         for (let row = -1; row < ROWS; row++) {            
             if ((row == -1) && (col == over_col)) {
@@ -114,6 +126,28 @@ function draw_board() {
                     CELL_HEIGHT - (1 * CELL_MARGIN));
         }
     }
+    
+    if (animating_col != -1) {        
+        if (current_turn_human) {
+            //console.log("Setting to red")
+            fill(255, 0, 0);
+        } else if (board[col][row] == COMPUTER_CELL) {
+            //console.log("Setting to yellow")
+            fill(255, 255, 0);
+        }
+
+        ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
+                BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
+                CELL_WIDTH - (1 * CELL_MARGIN),
+                CELL_HEIGHT - (1 * CELL_MARGIN));
+        animating_row++;
+        
+        if((animating_row > ROWS) || (board[animating_col][animating_row+1] != EMPTY_CELL)) {
+            board[animating_col][animating_row] = current_turn_human ? HUMAN_CELL : COMPUTER_CELL;
+            animating_col = -1;
+        }        
+    }
+    
     //console.log("------")
 }
 
