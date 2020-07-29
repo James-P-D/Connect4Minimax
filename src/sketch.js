@@ -71,7 +71,7 @@ function mousePressed() {
 }
 
 function get_over_cell_column() {
-    console.log(board);
+    //console.log(board);
     if (current_turn_human) {
         if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
             let col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
@@ -131,20 +131,23 @@ function draw_board() {
         if (current_turn_human) {
             //console.log("Setting to red")
             fill(255, 0, 0);
-        } else if (board[col][row] == COMPUTER_CELL) {
+        } else {
             //console.log("Setting to yellow")
             fill(255, 255, 0);
         }
-
+        console.log("Drawing... animating_col = "+ animating_col + " animating_row = " + animating_row);
         ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
                 BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
                 CELL_WIDTH - (1 * CELL_MARGIN),
                 CELL_HEIGHT - (1 * CELL_MARGIN));
         animating_row++;
+        console.log("Drawing... animating_col = "+ animating_col + " animating_row = " + animating_row);
         
-        if((animating_row > ROWS) || (board[animating_col][animating_row+1] != EMPTY_CELL)) {
+        if((animating_row > ROWS) || (board[animating_col][animating_row + 1] != EMPTY_CELL)) {
             board[animating_col][animating_row] = current_turn_human ? HUMAN_CELL : COMPUTER_CELL;
+            current_turn_human = !current_turn_human;
             animating_col = -1;
+            console.log("All done!");
         }        
     }
     
@@ -152,9 +155,11 @@ function draw_board() {
 }
 
 function draw() {
-  if (mouseIsPressed) {
-  }
   draw_board()
+  if ((!current_turn_human) && (animating_col == -1)) {
+      animating_col = 1;
+      animating_row = -1;
+  }
 }
 
 function initialise_board() {
