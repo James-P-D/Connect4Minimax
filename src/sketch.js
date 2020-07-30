@@ -260,9 +260,14 @@ function check_board_state(latest_col) {
 function draw() {
   draw_board()
   if ((!current_turn_human) && (animating_col == -1)) {
-      animating_col = 0;
+      animating_col = get_computer_move(board);
       animating_row = -1;
   }
+}
+
+function get_computer_move()
+{   
+    return Math.floor(Math.random() * COLS);
 }
 
 function initialise_board() {
