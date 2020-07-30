@@ -28,6 +28,11 @@ const EMPTY_CELL = 0
 const HUMAN_CELL = 1
 const COMPUTER_CELL = 2
 
+const INCOMPLETE = 0
+const HUMAN_WINS = 1
+const COMPUTER_WINS = 2
+const DRAW = 3
+
 /**************************************************
  * GLOBALS
  **************************************************/
@@ -71,12 +76,13 @@ function mousePressed() {
 }
 
 function get_over_cell_column() {
-    //console.log(board);
     if (current_turn_human) {
         if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
             let col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
-            if (board[col][0] == EMPTY_CELL) {
-                return col;
+            if ((col >= 0) && (col < COLS)) {
+                if (board[col][0] == EMPTY_CELL) {
+                    return col;
+                }
             }
         }
     }
@@ -129,29 +135,43 @@ function draw_board() {
     
     if (animating_col != -1) {        
         if (current_turn_human) {
-            //console.log("Setting to red")
-            fill(255, 0, 0);
+            fill(255, 0, 0); // Red
         } else {
-            //console.log("Setting to yellow")
-            fill(255, 255, 0);
+            fill(255, 255, 0); // Yellow
         }
-        console.log("Drawing... animating_col = "+ animating_col + " animating_row = " + animating_row);
         ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
-                BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
+                BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),   
                 CELL_WIDTH - (1 * CELL_MARGIN),
                 CELL_HEIGHT - (1 * CELL_MARGIN));
         animating_row++;
-        console.log("Drawing... animating_col = "+ animating_col + " animating_row = " + animating_row);
         
         if((animating_row > ROWS) || (board[animating_col][animating_row + 1] != EMPTY_CELL)) {
             board[animating_col][animating_row] = current_turn_human ? HUMAN_CELL : COMPUTER_CELL;
             current_turn_human = !current_turn_human;
+            check_board_state(animating_col);
             animating_col = -1;
-            console.log("All done!");
         }        
     }
     
     //console.log("------")
+}
+
+function check_board_state(latest_col) {
+    let latest_row = 0;
+    while (board[latest_col][latest_row] == EMPTY_CELL) {
+        latest_row++; 
+    }
+    let latest_piece = board[latest_col][latest_row];
+    
+    for(let col = 0; col < COLS; col++) {
+        if (board[col][0] == EMPTY_CELL) {
+            console.log("check_board_state(" + latest_col +") - INCOMPLETE");
+            return INCOMPLETE;
+        }
+    }
+    
+    console.log("check_board_state(" + latest_col +") - DRAW");
+    return DRAW;
 }
 
 function draw() {
