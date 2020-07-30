@@ -163,21 +163,104 @@ function check_board_state(latest_col) {
     }
     let latest_piece = board[latest_col][latest_row];
     
+    // Horizontal check
+    let horizontal_count = 1;
+    for(let col = latest_col - 1; col >= 0; col--) {
+        if(board[col][latest_row] == latest_piece) {
+            horizontal_count++;
+        } else {
+            break;
+        }
+    }
+    for(let col = latest_col + 1; col < COLS; col++) {
+        if(board[col][latest_row] == latest_piece) {
+            horizontal_count++;
+        } else {
+            break;
+        }
+    }
+    
+    if (horizontal_count >= 4) {
+        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    }
+    
+    // Vertical check    
+    let vertical_count = 1;
+    for(let row = latest_row - 1; row >= 0; row--) {
+        if(board[latest_col][row] == latest_piece) {
+            vertical_count++;
+        } else {
+            break;
+        }
+    }
+    for(let row = latest_row + 1; row < ROWS; row++) {
+        if(board[latest_col][row] == latest_piece) {
+            vertical_count++;
+        } else {
+            break;
+        }
+    }
+
+    if (vertical_count >= 4) {
+        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    }
+
+    // Top-left to bottom-right diagonal check
+    diagonal_nw_to_se_count = 1;
+    for (let row = latest_row - 1, col = latest_col - 1; (row >= 0) && (col >= 0); row--, col--) {
+        if(board[col][row] == latest_piece) {
+            diagonal_nw_to_se_count++;
+        } else {
+            break;
+        }
+    }
+    for (let row = latest_row + 1, col = latest_col + 1; (row < ROWS) && (col < COLS); row++, col++) {
+        if(board[col][row] == latest_piece) {
+            diagonal_nw_to_se_count++;
+        } else {
+            break;
+        }
+    }
+
+    if (diagonal_nw_to_se_count >= 4) {
+        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    }
+    
+    // Bottom-left to top-right diagonal check
+    diagonal_sw_to_ne_count = 1;
+    for (let row = latest_row + 1, col = latest_col - 1; (row < ROWS) && (col >= 0); row++, col--) {
+        if(board[col][row] == latest_piece) {
+            diagonal_sw_to_ne_count++;
+        } else {
+            break;
+        }
+    }
+    for (let row = latest_row - 1, col = latest_col + 1; (row >= 0) && (col < COLS); row--, col++) {
+        if(board[col][row] == latest_piece) {
+            diagonal_sw_to_ne_count++;
+        } else {
+            break;
+        }
+    }
+
+    if (diagonal_sw_to_ne_count >= 4) {
+        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    }
+    
+    // Draw check
     for(let col = 0; col < COLS; col++) {
         if (board[col][0] == EMPTY_CELL) {
-            console.log("check_board_state(" + latest_col +") - INCOMPLETE");
             return INCOMPLETE;
         }
     }
     
-    console.log("check_board_state(" + latest_col +") - DRAW");
     return DRAW;
 }
 
 function draw() {
   draw_board()
   if ((!current_turn_human) && (animating_col == -1)) {
-      animating_col = 1;
+      animating_col = 0;
       animating_row = -1;
   }
 }
