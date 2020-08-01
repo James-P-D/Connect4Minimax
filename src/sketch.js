@@ -38,11 +38,25 @@ const DRAW = 3
  **************************************************/
 
 var board;
-var human_goes_first = true;
-var current_turn_human = human_goes_first;
-var game_complete = false;
-var animating_col = -1;
-var animating_row = -1;
+var humanGoesFirst = true;
+var isCurrentTurnHuman = humanGoesFirst;
+var isGameComplete = false;
+var animatingCol = -1;
+var animatingRow = -1;
+
+/**************************************************
+ * MinimaxTree Class
+ **************************************************/
+
+class MinimaxTree {
+    constructor(board) {      
+        //this._board = board;
+    }
+  
+    get bestMove() {
+        return Math.floor(Math.random() * COLS);
+    }
+}
 
 /**************************************************
  * preload()
@@ -61,14 +75,14 @@ function setup() {
   
   textSize(40);
   textAlign(CENTER, CENTER);
-  initialise_board()
+  initialiseBoard()
 }
 
 /**************************************************
- * set_top_label()
+ * setTopLabel()
  **************************************************/
 
-function set_top_label(label_text) {
+function setTopLabel(label_text) {
     stroke(255); // White
     fill(255);   // White
     rect(0, 0, CANVAS_WIDTH, TOP_LABEL_HEIGHT);
@@ -78,10 +92,10 @@ function set_top_label(label_text) {
 }
 
 /**************************************************
- * set_bottom_label()
+ * setBottomLabel()
  **************************************************/
 
-function set_bottom_label(label_text) {
+function setBottomLabel(label_text) {
     stroke(0); // Black
     fill(0);   // Black
     text(label_text, CANVAS_WIDTH / 2, BOARD_TOP_MARGIN + BOARD_HEIGHT + (BOTTOM_LABEL_HEIGHT / 2)); 
@@ -92,25 +106,25 @@ function set_bottom_label(label_text) {
  **************************************************/
  
 function mousePressed() {
-    const col = get_over_cell_column();
+    const col = getOverCellColumn();
     if (col != -1) {
-        animating_col = col;
-        animating_row = -1;
+        animatingCol = col;
+        animatingRow = -1;
     } else if ((mouseY > BOARD_TOP_MARGIN + BOARD_HEIGHT) && (mouseY < BOARD_TOP_MARGIN + BOARD_HEIGHT + BOTTOM_LABEL_HEIGHT)) {
-        human_goes_first = !human_goes_first;
-        current_turn_human = human_goes_first;
-        initialise_board();
-        game_complete = false;
+        humanGoesFirst = !humanGoesFirst;
+        isCurrentTurnHuman = humanGoesFirst;
+        initialiseBoard();
+        isGameComplete = false;
         loop();
     }
 }
 
 /**************************************************
- * get_over_cell_column()
+ * getOverCellColumn()
  **************************************************/
 
-function get_over_cell_column() {
-    if (current_turn_human) {
+function getOverCellColumn() {
+    if (isCurrentTurnHuman) {
         if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
             const col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
             if ((col >= 0) && (col < COLS)) {
@@ -125,201 +139,191 @@ function get_over_cell_column() {
 }
 
 /**************************************************
- * draw_board()
+ * drawBoard()
  **************************************************/
 
-function draw_board() {
-    //console.log("draw_board()");
+function drawBoard() {
+    console.log("drawBoard()");
     background(255);
     
     stroke(0);       // Black
     fill(0, 0, 255); // Blue
     rect(BOARD_LEFT_MARGIN, BOARD_TOP_MARGIN, BOARD_WIDTH, BOARD_HEIGHT);
     
-    set_bottom_label("RESET GAME");
+    setBottomLabel("RESET GAME");
     
     fill(255); // White
 
-    if (current_turn_human) {
-        set_top_label("HUMAN TURN");
+    if (isCurrentTurnHuman) {
+        setTopLabel("HUMAN TURN");
     } else {
-        set_top_label("COMPUTER TURN");
+        setTopLabel("COMPUTER TURN");
     }
     
-    let over_col = get_over_cell_column();
+    let overCol = getOverCellColumn();
     // Only bother checking for mouse-over the top row of cells if it's a human turn
         
     for (let col = 0; col < COLS; col++) {
         for (let row = -1; row < ROWS; row++) {            
-            if ((row == -1) && (col == over_col)) {
-                fill(255, 0, 0);
+            if ((row == -1) && (col == overCol)) {
+                drawCell(col, row, HUMAN_CELL);
             } else {
-                if (board[col][row] == HUMAN_CELL) {
-                    //console.log("Setting to red")
-                    fill(255, 0, 0);
-                } else if (board[col][row] == COMPUTER_CELL) {
-                    //console.log("Setting to yellow")
-                    fill(255, 255, 0);
-                } else {
-                    fill(255);
-                }
-            }
-            ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
-                    BOARD_TOP_MARGIN + (row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
-                    CELL_WIDTH - CELL_MARGIN,
-                    CELL_HEIGHT - CELL_MARGIN);
+                drawCell(col, row, board[col][row]);
+            }            
         }
     }
     
-    if (animating_col != -1) {        
-        if (current_turn_human) {
-            fill(255, 0, 0); // Red
-        } else {
-            fill(255, 255, 0); // Yellow
-        }
-        ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
-                BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),   
-                CELL_WIDTH - CELL_MARGIN,
-                CELL_HEIGHT - CELL_MARGIN);
-        animating_row++;
+    if (animatingCol != -1) {        
+        drawCell(animatingCol, animatingRow, isCurrentTurnHuman ? HUMAN_CELL : COMPUTER_CELL);
         
-        if((animating_row > ROWS) || (board[animating_col][animating_row + 1] != EMPTY_CELL)) {
-            board[animating_col][animating_row] = current_turn_human ? HUMAN_CELL : COMPUTER_CELL;
+        if ((animatingRow == ROWS -1) || (board[animatingCol][animatingRow + 1] != EMPTY_CELL)) {
+            board[animatingCol][animatingRow] = isCurrentTurnHuman ? HUMAN_CELL : COMPUTER_CELL;
             
-            ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
-                    BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),   
-                    CELL_WIDTH - CELL_MARGIN,
-                    CELL_HEIGHT - CELL_MARGIN);
+            // Clear the mouse-over cells, just incase we are stopping because someone has won
             for (let col = 0; col < COLS; col++) {            
-                fill(255); // WHITE
-                ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
-                        BOARD_TOP_MARGIN + (-1 * CELL_HEIGHT) + (CELL_HEIGHT / 2),
-                        CELL_WIDTH - CELL_MARGIN,
-                        CELL_HEIGHT - CELL_MARGIN);
-                
+                drawCell(animatingCol, -1, EMPTY_CELL);
             }
             
-            switch(check_board_state(animating_col)) {
+            switch(checkBoardState(animatingCol)) {
                 case HUMAN_WINS : {
-                    game_complete = true;
-                    set_top_label("HUMAN WINS!");
+                    isGameComplete = true;
+                    setTopLabel("HUMAN WINS!");
                     break;
                 }
                 case COMPUTER_WINS : {
-                    set_top_label("COMPUTER WINS!");
-                    game_complete = true;
+                    setTopLabel("COMPUTER WINS!");
+                    isGameComplete = true;
                     break;
                 }
                 case DRAW : {
-                    set_top_label("DRAW!");
-                    game_complete = true;
+                    setTopLabel("DRAW!");
+                    isGameComplete = true;
                     break;
                 }
                 case INCOMPLETE : {
-                    current_turn_human = !current_turn_human;
+                    isCurrentTurnHuman = !isCurrentTurnHuman;
+                    //isCurrentTurnHuman = isCurrentTurnHuman;
                 }
                 
             }
-            animating_col = -1;
+            animatingCol = -1;
         }        
+        animatingRow++;
+        
     }
     
     //console.log("------")
 }
 
+function drawCell(col, row, cellType) {
+    if (cellType == HUMAN_CELL) {
+        console.log("DrawCell(", col, ", ", row, ", ", cellType, ")");
+        fill(255, 0, 0);
+    } else if (cellType == COMPUTER_CELL) {
+        fill(255, 255, 0);
+    } else {
+        fill(255);
+    }    
+    
+    ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
+            BOARD_TOP_MARGIN + (row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
+            CELL_WIDTH - CELL_MARGIN,
+            CELL_HEIGHT - CELL_MARGIN);    
+}
+
 /**************************************************
- * check_board_state()
+ * checkBoardState()
  **************************************************/
 
-function check_board_state(latest_col) {
-    var latest_row = 0;
-    while (board[latest_col][latest_row] == EMPTY_CELL) {
-        latest_row++; 
+function checkBoardState(latestCol) {
+    var latestRow = 0;
+    while (board[latestCol][latestRow] == EMPTY_CELL) {
+        latestRow++; 
     }
-    const latest_piece = board[latest_col][latest_row];
+    const latestPiece = board[latestCol][latestRow];
     
     // Horizontal check
-    var horizontal_count = 1;
-    for(let col = latest_col - 1; col >= 0; col--) {
-        if(board[col][latest_row] == latest_piece) {
-            horizontal_count++;
+    var horizontalCount = 1;
+    for(let col = latestCol - 1; col >= 0; col--) {
+        if(board[col][latestRow] == latestPiece) {
+            horizontalCount++;
         } else {
             break;
         }
     }
-    for(let col = latest_col + 1; col < COLS; col++) {
-        if(board[col][latest_row] == latest_piece) {
-            horizontal_count++;
+    for(let col = latestCol + 1; col < COLS; col++) {
+        if(board[col][latestRow] == latestPiece) {
+            horizontalCount++;
         } else {
             break;
         }
     }
     
-    if (horizontal_count >= 4) {
-        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    if (horizontalCount >= 4) {
+        return latestPiece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
     }
     
     // Vertical check    
-    var vertical_count = 1;
-    for(let row = latest_row - 1; row >= 0; row--) {
-        if(board[latest_col][row] == latest_piece) {
-            vertical_count++;
+    var verticalCount = 1;
+    for(let row = latestRow - 1; row >= 0; row--) {
+        if(board[latestCol][row] == latestPiece) {
+            verticalCount++;
         } else {
             break;
         }
     }
-    for(let row = latest_row + 1; row < ROWS; row++) {
-        if(board[latest_col][row] == latest_piece) {
-            vertical_count++;
+    for(let row = latestRow + 1; row < ROWS; row++) {
+        if(board[latestCol][row] == latestPiece) {
+            verticalCount++;
         } else {
             break;
         }
     }
 
-    if (vertical_count >= 4) {
-        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    if (verticalCount >= 4) {
+        return latestPiece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
     }
 
     // Top-left to bottom-right diagonal check
-    var diagonal_nw_to_se_count = 1;
-    for (let row = latest_row - 1, col = latest_col - 1; (row >= 0) && (col >= 0); row--, col--) {
-        if(board[col][row] == latest_piece) {
-            diagonal_nw_to_se_count++;
+    var diagonalCount = 1;
+    for (let row = latestRow - 1, col = latestCol - 1; (row >= 0) && (col >= 0); row--, col--) {
+        if(board[col][row] == latestPiece) {
+            diagonalCount++;
         } else {
             break;
         }
     }
-    for (let row = latest_row + 1, col = latest_col + 1; (row < ROWS) && (col < COLS); row++, col++) {
-        if(board[col][row] == latest_piece) {
-            diagonal_nw_to_se_count++;
+    for (let row = latestRow + 1, col = latestCol + 1; (row < ROWS) && (col < COLS); row++, col++) {
+        if(board[col][row] == latestPiece) {
+            diagonalCount++;
         } else {
             break;
         }
     }
 
-    if (diagonal_nw_to_se_count >= 4) {
-        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    if (diagonalCount >= 4) {
+        return latestPiece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
     }
     
     // Bottom-left to top-right diagonal check
-    var diagonal_sw_to_ne_count = 1;
-    for (let row = latest_row + 1, col = latest_col - 1; (row < ROWS) && (col >= 0); row++, col--) {
-        if(board[col][row] == latest_piece) {
-            diagonal_sw_to_ne_count++;
+    diagonalCount = 1;
+    for (let row = latestRow + 1, col = latestCol - 1; (row < ROWS) && (col >= 0); row++, col--) {
+        if(board[col][row] == latestPiece) {
+            diagonalCount++;
         } else {
             break;
         }
     }
-    for (let row = latest_row - 1, col = latest_col + 1; (row >= 0) && (col < COLS); row--, col++) {
-        if(board[col][row] == latest_piece) {
-            diagonal_sw_to_ne_count++;
+    for (let row = latestRow - 1, col = latestCol + 1; (row >= 0) && (col < COLS); row--, col++) {
+        if(board[col][row] == latestPiece) {
+            diagonalCount++;
         } else {
             break;
         }
     }
 
-    if (diagonal_sw_to_ne_count >= 4) {
-        return latest_piece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
+    if (diagonalCount >= 4) {
+        return latestPiece == HUMAN_CELL ? HUMAN_WINS : COMPUTER_WINS;
     }
     
     // Draw check
@@ -337,30 +341,32 @@ function check_board_state(latest_col) {
  **************************************************/
 
 function draw() {
-  if (game_complete) {
-      noLoop();
-  } else {
-    draw_board()
-    if ((!current_turn_human) && (animating_col == -1)) {
-        animating_col = get_computer_move(board);
-        animating_row = -1;
+    if (isGameComplete) {
+        noLoop();
+    } else {
+        drawBoard()
+        if ((!isCurrentTurnHuman) && (animatingCol == -1)) {
+            animatingCol = getComputerMove(board);
+            animatingRow = -1;
+        }
     }
-  }
 }
 
 /**************************************************
- * get_computer_move()
+ * getComputerMove()
  **************************************************/
 
-function get_computer_move()
-{
-    return Math.floor(Math.random() * COLS);
+function getComputerMove(){
+    //var tree = new MinimaxTree(board);
+    //var col = MinimaxTree.bestMove;
+    //return col;
+    return 1;
 }
 
 /**************************************************
  * initialise_board()
  **************************************************/
 
-function initialise_board() {
+function initialiseBoard() {
    board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
 }
