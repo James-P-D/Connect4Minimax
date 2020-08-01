@@ -43,8 +43,16 @@ var current_turn_human = human_goes_first;
 var animating_col = -1;
 var animating_row = -1;
 
+/**************************************************
+ * preload()
+ **************************************************/
+
 function preload() {
 }
+
+/**************************************************
+ * setup()
+ **************************************************/
 
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -55,11 +63,19 @@ function setup() {
   initialise_board()
 }
 
+/**************************************************
+ * set_top_label()
+ **************************************************/
+
 function set_top_label(label_text) {
     stroke(0); // Black
     fill(0);   // Black
     text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
 }
+
+/**************************************************
+ * set_bottom_label()
+ **************************************************/
 
 function set_bottom_label(label_text) {
     stroke(0); // Black
@@ -67,6 +83,10 @@ function set_bottom_label(label_text) {
     text(label_text, CANVAS_WIDTH / 2, BOARD_TOP_MARGIN + BOARD_HEIGHT + (BOTTOM_LABEL_HEIGHT / 2)); 
 }
 
+/**************************************************
+ * mousePressed()
+ **************************************************/
+ 
 function mousePressed() {
     const col = get_over_cell_column();
     if (col != -1) {
@@ -74,6 +94,10 @@ function mousePressed() {
         animating_row = -1;
     }
 }
+
+/**************************************************
+ * get_over_cell_column()
+ **************************************************/
 
 function get_over_cell_column() {
     if (current_turn_human) {
@@ -89,6 +113,10 @@ function get_over_cell_column() {
     
     return -1;
 }
+
+/**************************************************
+ * draw_board()
+ **************************************************/
 
 function draw_board() {
     //console.log("draw_board()");
@@ -128,8 +156,8 @@ function draw_board() {
             }
             ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
                     BOARD_TOP_MARGIN + (row * CELL_HEIGHT) + (CELL_HEIGHT / 2),
-                    CELL_WIDTH - (1 * CELL_MARGIN),
-                    CELL_HEIGHT - (1 * CELL_MARGIN));
+                    CELL_WIDTH - CELL_MARGIN,
+                    CELL_HEIGHT - CELL_MARGIN);
         }
     }
     
@@ -141,8 +169,8 @@ function draw_board() {
         }
         ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
                 BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),   
-                CELL_WIDTH - (1 * CELL_MARGIN),
-                CELL_HEIGHT - (1 * CELL_MARGIN));
+                CELL_WIDTH - CELL_MARGIN,
+                CELL_HEIGHT - CELL_MARGIN);
         animating_row++;
         
         if((animating_row > ROWS) || (board[animating_col][animating_row + 1] != EMPTY_CELL)) {
@@ -155,6 +183,10 @@ function draw_board() {
     
     //console.log("------")
 }
+
+/**************************************************
+ * check_board_state()
+ **************************************************/
 
 function check_board_state(latest_col) {
     var latest_row = 0;
@@ -257,6 +289,10 @@ function check_board_state(latest_col) {
     return DRAW;
 }
 
+/**************************************************
+ * draw()
+ **************************************************/
+
 function draw() {
   draw_board()
   if ((!current_turn_human) && (animating_col == -1)) {
@@ -265,10 +301,18 @@ function draw() {
   }
 }
 
+/**************************************************
+ * get_computer_move()
+ **************************************************/
+
 function get_computer_move()
 {   
     return Math.floor(Math.random() * COLS);
 }
+
+/**************************************************
+ * initialise_board()
+ **************************************************/
 
 function initialise_board() {
    board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
