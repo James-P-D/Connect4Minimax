@@ -40,6 +40,7 @@ const DRAW = 3
 var board;
 var human_goes_first = true;
 var current_turn_human = human_goes_first;
+var game_complete = false;
 var animating_col = -1;
 var animating_row = -1;
 
@@ -68,8 +69,11 @@ function setup() {
  **************************************************/
 
 function set_top_label(label_text) {
-    stroke(0); // Black
-    fill(0);   // Black
+    stroke(255); // White
+    fill(255);   // White
+    rect(0, 0, CANVAS_WIDTH, TOP_LABEL_HEIGHT);
+    stroke(0);   // Black
+    fill(0);     // Black
     text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
 }
 
@@ -92,6 +96,12 @@ function mousePressed() {
     if (col != -1) {
         animating_col = col;
         animating_row = -1;
+    } else if ((mouseY > BOARD_TOP_MARGIN + BOARD_HEIGHT) && (mouseY < BOARD_TOP_MARGIN + BOARD_HEIGHT + BOTTOM_LABEL_HEIGHT)) {
+        human_goes_first = !human_goes_first;
+        current_turn_human = human_goes_first;
+        initialise_board();
+        game_complete = false;
+        loop();
     }
 }
 
@@ -126,15 +136,15 @@ function draw_board() {
     fill(0, 0, 255); // Blue
     rect(BOARD_LEFT_MARGIN, BOARD_TOP_MARGIN, BOARD_WIDTH, BOARD_HEIGHT);
     
+    set_bottom_label("RESET GAME");
+    
+    fill(255); // White
+
     if (current_turn_human) {
         set_top_label("HUMAN TURN");
     } else {
         set_top_label("COMPUTER TURN");
     }
-    //set_top_label(date);
-    //set_bottom_label(date);
-    
-    fill(255); // White
     
     let over_col = get_over_cell_column();
     // Only bother checking for mouse-over the top row of cells if it's a human turn
@@ -175,8 +185,41 @@ function draw_board() {
         
         if((animating_row > ROWS) || (board[animating_col][animating_row + 1] != EMPTY_CELL)) {
             board[animating_col][animating_row] = current_turn_human ? HUMAN_CELL : COMPUTER_CELL;
-            current_turn_human = !current_turn_human;
-            check_board_state(animating_col);
+            
+            ellipse(BOARD_LEFT_MARGIN + (animating_col * CELL_WIDTH) + (CELL_WIDTH / 2),
+                    BOARD_TOP_MARGIN + (animating_row * CELL_HEIGHT) + (CELL_HEIGHT / 2),   
+                    CELL_WIDTH - CELL_MARGIN,
+                    CELL_HEIGHT - CELL_MARGIN);
+            for (let col = 0; col < COLS; col++) {            
+                fill(255); // WHITE
+                ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
+                        BOARD_TOP_MARGIN + (-1 * CELL_HEIGHT) + (CELL_HEIGHT / 2),
+                        CELL_WIDTH - CELL_MARGIN,
+                        CELL_HEIGHT - CELL_MARGIN);
+                
+            }
+            
+            switch(check_board_state(animating_col)) {
+                case HUMAN_WINS : {
+                    game_complete = true;
+                    set_top_label("HUMAN WINS!");
+                    break;
+                }
+                case COMPUTER_WINS : {
+                    set_top_label("COMPUTER WINS!");
+                    game_complete = true;
+                    break;
+                }
+                case DRAW : {
+                    set_top_label("DRAW!");
+                    game_complete = true;
+                    break;
+                }
+                case INCOMPLETE : {
+                    current_turn_human = !current_turn_human;
+                }
+                
+            }
             animating_col = -1;
         }        
     }
@@ -294,10 +337,14 @@ function check_board_state(latest_col) {
  **************************************************/
 
 function draw() {
-  draw_board()
-  if ((!current_turn_human) && (animating_col == -1)) {
-      animating_col = get_computer_move(board);
-      animating_row = -1;
+  if (game_complete) {
+      noLoop();
+  } else {
+    draw_board()
+    if ((!current_turn_human) && (animating_col == -1)) {
+        animating_col = get_computer_move(board);
+        animating_row = -1;
+    }
   }
 }
 
@@ -306,7 +353,7 @@ function draw() {
  **************************************************/
 
 function get_computer_move()
-{   
+{
     return Math.floor(Math.random() * COLS);
 }
 
@@ -316,5 +363,4 @@ function get_computer_move()
 
 function initialise_board() {
    board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
-   console.log(board);
 }
