@@ -1,3 +1,5 @@
+// TODO: Do we need to check for Draw? Not sure what will happen with minimax search if there are no free cells left..
+
 const COLS = 7
 const ROWS = 6
 
@@ -44,18 +46,105 @@ var isGameComplete = false;
 var animatingCol = -1;
 var animatingRow = -1;
 
+function cloneBoard(baseBoard) {
+    newBoard = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL));
+    for (let col = 0; col < COLS; col++) {
+        for (let row = 0; row < ROWS; row++) {
+            newBoard[col][row] = baseBoard[col][row];
+        }
+    }
+    return newBoard;
+}
+
+
 /**************************************************
  * MinimaxTree Class
  **************************************************/
 
 class MinimaxTree {
-    constructor(board) {      
-        //this._board = board;
+    constructor() {      
     }
   
     get bestMove() {
-        return Math.floor(Math.random() * COLS);
+        var bestValue = Number.MIN_SAFE_INTEGER;
+        var bestCol = 0;
+        
+        for (let col = 0; col < COLS; col++) {
+            if (this.board[col][0] == EMPTY_CELL) {
+                tempNode = new MinimaxNode(cloneBoard(board), col, humanPlayer, 0);
+                if (tempNode.nodeValue > bestValue) {
+                    bestCol = col;
+                }
+            }
+        }
+        return bestCol;
     }
+}
+
+class MinimaxNode {
+    constructor(nodeBoard, col, humanPlayer, depth) {
+        var row = 0;
+        while((nodeBoard[col][row] == EMPTY_CELL) && (row < ROWS)) {
+            row++;
+        }
+        
+        nodeBoard[col][row] = humanPlayer ? HUMAN_CELL : COMPUTER_CELL;
+        
+        switch (checkBoardState()) {
+            case HUMAN_WINS : {
+                this.value = 100000 - depth;
+                break;               
+            }
+            case HUMAN_WINS : {
+                this.value = -100000 + depth;
+                break;               
+            }
+            case DRAW : {
+                this.value = 0 - depth;
+                break;
+            }
+            case INCOMPLETE: {
+                if (depth > 10) {
+                    this.value = 0 - depth
+                } else {
+                    this.childNodes = [];
+                    for (let col = 0; col < COLS; col++) {
+                        if (this.nodeBoard[col][0] == EMPTY_CELL) {
+                            this.childNodes.push(new MinimaxNode(cloneBoard(nodeBoard), col, !humanPlayer, depth + 1));
+                        }
+                    }
+                    
+                    if(this.childNodes.length == 0) {
+                        this.value = 0;
+                    } else {
+                        if (humanPlayer) {
+                            this.value = Number.MIN_SAFE_INTEGER;
+                            for (let i = 0; i < this.childNodes.length; i++) {
+                                if (this.childNodes[i].nodeValue > this.value) {
+                                    this.value = this.childNodes[i].nodeValue;
+                                }
+                            }
+                        } else {
+                            this.value = Number.MAX_SAFE_INTEGER;
+                            for (let i = 0; i < this.childNodes.length; i++) {
+                                if (this.childNodes[i].nodeValue < this.value) {
+                                    this.value = this.childNodes[i].nodeValue;
+                                }
+                            }
+                        }                        
+                    }
+                }
+                
+                break;
+            }
+        }
+        
+    }
+    
+    get nodeValue() {
+        return this.value;
+    }
+    
 }
 
 /**************************************************
@@ -143,26 +232,20 @@ function getOverCellColumn() {
  **************************************************/
 
 function drawBoard() {
-    console.log("drawBoard()");
-    background(255);
+    // Draw the white background
+    background(255); // WHITE
     
+    // Draw the board
     stroke(0);       // Black
     fill(0, 0, 255); // Blue
     rect(BOARD_LEFT_MARGIN, BOARD_TOP_MARGIN, BOARD_WIDTH, BOARD_HEIGHT);
     
+    // Draw the labels
+    setTopLabel(isCurrentTurnHuman ? "HUMAN TURN" : "COMPUTER TURN");
     setBottomLabel("RESET GAME");
     
-    fill(255); // White
-
-    if (isCurrentTurnHuman) {
-        setTopLabel("HUMAN TURN");
-    } else {
-        setTopLabel("COMPUTER TURN");
-    }
-    
+    // Set the top row to show a cell start dropping
     let overCol = getOverCellColumn();
-    // Only bother checking for mouse-over the top row of cells if it's a human turn
-        
     for (let col = 0; col < COLS; col++) {
         for (let row = -1; row < ROWS; row++) {            
             if ((row == -1) && (col == overCol)) {
@@ -173,6 +256,7 @@ function drawBoard() {
         }
     }
     
+    // Show animation
     if (animatingCol != -1) {        
         drawCell(animatingCol, animatingRow, isCurrentTurnHuman ? HUMAN_CELL : COMPUTER_CELL);
         
@@ -202,7 +286,6 @@ function drawBoard() {
                 }
                 case INCOMPLETE : {
                     isCurrentTurnHuman = !isCurrentTurnHuman;
-                    //isCurrentTurnHuman = isCurrentTurnHuman;
                 }
                 
             }
@@ -215,9 +298,12 @@ function drawBoard() {
     //console.log("------")
 }
 
+/**************************************************
+ * drawCell()
+ **************************************************/
+
 function drawCell(col, row, cellType) {
     if (cellType == HUMAN_CELL) {
-        console.log("DrawCell(", col, ", ", row, ", ", cellType, ")");
         fill(255, 0, 0);
     } else if (cellType == COMPUTER_CELL) {
         fill(255, 255, 0);
@@ -357,10 +443,9 @@ function draw() {
  **************************************************/
 
 function getComputerMove(){
-    //var tree = new MinimaxTree(board);
-    //var col = MinimaxTree.bestMove;
-    //return col;
-    return 1;
+    var tree = new MinimaxTree();
+    var col = MinimaxTree.bestMove;
+    return col;    
 }
 
 /**************************************************
