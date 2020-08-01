@@ -68,7 +68,7 @@ function set_bottom_label(label_text) {
 }
 
 function mousePressed() {
-    let col = get_over_cell_column();
+    const col = get_over_cell_column();
     if (col != -1) {
         animating_col = col;
         animating_row = -1;
@@ -78,7 +78,7 @@ function mousePressed() {
 function get_over_cell_column() {
     if (current_turn_human) {
         if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
-            let col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
+            const col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
             if ((col >= 0) && (col < COLS)) {
                 if (board[col][0] == EMPTY_CELL) {
                     return col;
@@ -157,14 +157,14 @@ function draw_board() {
 }
 
 function check_board_state(latest_col) {
-    let latest_row = 0;
+    var latest_row = 0;
     while (board[latest_col][latest_row] == EMPTY_CELL) {
         latest_row++; 
     }
-    let latest_piece = board[latest_col][latest_row];
+    const latest_piece = board[latest_col][latest_row];
     
     // Horizontal check
-    let horizontal_count = 1;
+    var horizontal_count = 1;
     for(let col = latest_col - 1; col >= 0; col--) {
         if(board[col][latest_row] == latest_piece) {
             horizontal_count++;
@@ -185,7 +185,7 @@ function check_board_state(latest_col) {
     }
     
     // Vertical check    
-    let vertical_count = 1;
+    var vertical_count = 1;
     for(let row = latest_row - 1; row >= 0; row--) {
         if(board[latest_col][row] == latest_piece) {
             vertical_count++;
@@ -206,7 +206,7 @@ function check_board_state(latest_col) {
     }
 
     // Top-left to bottom-right diagonal check
-    diagonal_nw_to_se_count = 1;
+    var diagonal_nw_to_se_count = 1;
     for (let row = latest_row - 1, col = latest_col - 1; (row >= 0) && (col >= 0); row--, col--) {
         if(board[col][row] == latest_piece) {
             diagonal_nw_to_se_count++;
@@ -227,7 +227,7 @@ function check_board_state(latest_col) {
     }
     
     // Bottom-left to top-right diagonal check
-    diagonal_sw_to_ne_count = 1;
+    var diagonal_sw_to_ne_count = 1;
     for (let row = latest_row + 1, col = latest_col - 1; (row < ROWS) && (col >= 0); row++, col--) {
         if(board[col][row] == latest_piece) {
             diagonal_sw_to_ne_count++;
