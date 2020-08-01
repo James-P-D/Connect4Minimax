@@ -35,6 +35,8 @@ const HUMAN_WINS = 1
 const COMPUTER_WINS = 2
 const DRAW = 3
 
+const MAX_DEPTH = 2;
+
 /**************************************************
  * GLOBALS
  **************************************************/
@@ -70,8 +72,8 @@ class MinimaxTree {
         var bestCol = 0;
         
         for (let col = 0; col < COLS; col++) {
-            if (this.board[col][0] == EMPTY_CELL) {
-                tempNode = new MinimaxNode(cloneBoard(board), col, humanPlayer, 0);
+            if (board[col][0] == EMPTY_CELL) {
+                let tempNode = new MinimaxNode(cloneBoard(board), col, false, 0);
                 if (tempNode.nodeValue > bestValue) {
                     bestCol = col;
                 }
@@ -90,7 +92,7 @@ class MinimaxNode {
         
         nodeBoard[col][row] = humanPlayer ? HUMAN_CELL : COMPUTER_CELL;
         
-        switch (checkBoardState()) {
+        switch (checkBoardState(nodeBoard, col)) {
             case HUMAN_WINS : {
                 this.value = 100000 - depth;
                 break;               
@@ -104,12 +106,12 @@ class MinimaxNode {
                 break;
             }
             case INCOMPLETE: {
-                if (depth > 10) {
+                if (depth >= MAX_DEPTH) {
                     this.value = 0 - depth
                 } else {
                     this.childNodes = [];
                     for (let col = 0; col < COLS; col++) {
-                        if (this.nodeBoard[col][0] == EMPTY_CELL) {
+                        if (nodeBoard[col][0] == EMPTY_CELL) {
                             this.childNodes.push(new MinimaxNode(cloneBoard(nodeBoard), col, !humanPlayer, depth + 1));
                         }
                     }
@@ -232,6 +234,7 @@ function getOverCellColumn() {
  **************************************************/
 
 function drawBoard() {
+    console.log(board);
     // Draw the white background
     background(255); // WHITE
     
@@ -260,6 +263,9 @@ function drawBoard() {
     if (animatingCol != -1) {        
         drawCell(animatingCol, animatingRow, isCurrentTurnHuman ? HUMAN_CELL : COMPUTER_CELL);
         
+        console.log("animatingRow = ", animatingRow);
+        console.log("animatingCol = ", animatingCol);
+        console.log("About to check row ", (animatingRow + 1));
         if ((animatingRow == ROWS -1) || (board[animatingCol][animatingRow + 1] != EMPTY_CELL)) {
             board[animatingCol][animatingRow] = isCurrentTurnHuman ? HUMAN_CELL : COMPUTER_CELL;
             
@@ -268,7 +274,7 @@ function drawBoard() {
                 drawCell(animatingCol, -1, EMPTY_CELL);
             }
             
-            switch(checkBoardState(animatingCol)) {
+            switch(checkBoardState(board, animatingCol)) {
                 case HUMAN_WINS : {
                     isGameComplete = true;
                     setTopLabel("HUMAN WINS!");
@@ -321,24 +327,24 @@ function drawCell(col, row, cellType) {
  * checkBoardState()
  **************************************************/
 
-function checkBoardState(latestCol) {
+function checkBoardState(someBoard, latestCol) {
     var latestRow = 0;
-    while (board[latestCol][latestRow] == EMPTY_CELL) {
+    while (someBoard[latestCol][latestRow] == EMPTY_CELL) {
         latestRow++; 
     }
-    const latestPiece = board[latestCol][latestRow];
+    const latestPiece = someBoard[latestCol][latestRow];
     
     // Horizontal check
     var horizontalCount = 1;
     for(let col = latestCol - 1; col >= 0; col--) {
-        if(board[col][latestRow] == latestPiece) {
+        if(someBoard[col][latestRow] == latestPiece) {
             horizontalCount++;
         } else {
             break;
         }
     }
     for(let col = latestCol + 1; col < COLS; col++) {
-        if(board[col][latestRow] == latestPiece) {
+        if(someBoard[col][latestRow] == latestPiece) {
             horizontalCount++;
         } else {
             break;
@@ -352,14 +358,14 @@ function checkBoardState(latestCol) {
     // Vertical check    
     var verticalCount = 1;
     for(let row = latestRow - 1; row >= 0; row--) {
-        if(board[latestCol][row] == latestPiece) {
+        if(someBoard[latestCol][row] == latestPiece) {
             verticalCount++;
         } else {
             break;
         }
     }
     for(let row = latestRow + 1; row < ROWS; row++) {
-        if(board[latestCol][row] == latestPiece) {
+        if(someBoard[latestCol][row] == latestPiece) {
             verticalCount++;
         } else {
             break;
@@ -373,14 +379,14 @@ function checkBoardState(latestCol) {
     // Top-left to bottom-right diagonal check
     var diagonalCount = 1;
     for (let row = latestRow - 1, col = latestCol - 1; (row >= 0) && (col >= 0); row--, col--) {
-        if(board[col][row] == latestPiece) {
+        if(someBoard[col][row] == latestPiece) {
             diagonalCount++;
         } else {
             break;
         }
     }
     for (let row = latestRow + 1, col = latestCol + 1; (row < ROWS) && (col < COLS); row++, col++) {
-        if(board[col][row] == latestPiece) {
+        if(someBoard[col][row] == latestPiece) {
             diagonalCount++;
         } else {
             break;
@@ -394,14 +400,14 @@ function checkBoardState(latestCol) {
     // Bottom-left to top-right diagonal check
     diagonalCount = 1;
     for (let row = latestRow + 1, col = latestCol - 1; (row < ROWS) && (col >= 0); row++, col--) {
-        if(board[col][row] == latestPiece) {
+        if(someBoard[col][row] == latestPiece) {
             diagonalCount++;
         } else {
             break;
         }
     }
     for (let row = latestRow - 1, col = latestCol + 1; (row >= 0) && (col < COLS); row--, col++) {
-        if(board[col][row] == latestPiece) {
+        if(someBoard[col][row] == latestPiece) {
             diagonalCount++;
         } else {
             break;
@@ -414,7 +420,7 @@ function checkBoardState(latestCol) {
     
     // Draw check
     for(let col = 0; col < COLS; col++) {
-        if (board[col][0] == EMPTY_CELL) {
+        if (someBoard[col][0] == EMPTY_CELL) {
             return INCOMPLETE;
         }
     }
@@ -444,7 +450,8 @@ function draw() {
 
 function getComputerMove(){
     var tree = new MinimaxTree();
-    var col = MinimaxTree.bestMove;
+    var col = tree.bestMove;
+    console.log("BEST MOVE COL IS ", col);
     return col;    
 }
 
