@@ -35,7 +35,7 @@ const HUMAN_WINS = 1
 const COMPUTER_WINS = 2
 const DRAW = 3
 
-const MAX_DEPTH = 1;
+const MAX_DEPTH = 4;
 
 /**************************************************
  * GLOBALS
@@ -74,26 +74,36 @@ class MinimaxTree {
         
         for (let col = 0; col < COLS; col++) {
             if (board[col][0] == EMPTY_CELL) {
-                let tempNode = new MinimaxNode(this.treeBoard, col, false, 0);
+                let tempNode = new MinimaxNode(cloneBoard(this.treeBoard), col, false, 0);
                 console.log("col = ", col, " tempNode.nodeValue = ", tempNode.nodeValue);
                 if (tempNode.nodeValue > bestValue) {
+                    bestValue = tempNode.nodeValue;
                     bestCol = col;
-                }\
+                }
             }
         }
         return bestCol;
     }
 }
-
+function getDepthString(humanPlayer, depth) {
+    let retVal = humanPlayer ? "HUMAN: " : "COMPU: ";
+    
+    for(let i =0; i< depth; i++) {
+        retVal += "    ";
+    }
+    return retVal;
+}
 class MinimaxNode {
+    
     constructor(nodeBoard, col, humanPlayer, depth) {        
         var row = 0;
         while((nodeBoard[col][row] == EMPTY_CELL) && (row < ROWS)) {
             row++;
         }
         
-        nodeBoard[col][row] = humanPlayer ? HUMAN_CELL : COMPUTER_CELL;
+        nodeBoard[col][row-1] = humanPlayer ? HUMAN_CELL : COMPUTER_CELL;
         
+        /*
         var totalCells = 0;
         for(let i =0; i<COLS; i++) {
             for(let j =0; j<ROWS; j++){
@@ -103,20 +113,21 @@ class MinimaxNode {
             }
         }
         console.log("minimaxNode totalCells = ", totalCells);
-        
+        */
         switch (checkBoardState(nodeBoard, col)) {
             case COMPUTER_WINS : {
                 this.value = 100000 - depth;
-                console.log("COMPUTER WIN this.value = ", this.value);
+                //console.log(getDepthString(humanPlayer, depth) + "COMPUTER WIN col = ", col, " this.value = ", this.value);
                 break;               
             }
             case HUMAN_WINS : {
                 this.value = -100000 + depth;
-                console.log("HUMAN WIN this.value = ", this.value);
+                //console.log(getDepthString(humanPlayer, depth) + "HUMAN WIN col = ", col, " this.value = ", this.value);
                 break;               
             }
             case DRAW : {
                 this.value = 0 - depth;
+                //console.log(getDepthString(humanPlayer, depth) + "DRAW col = ", col, " this.value = ", this.value);
                 break;
             }
             case INCOMPLETE: {
@@ -131,6 +142,7 @@ class MinimaxNode {
                     }
                     
                     if(this.childNodes.length == 0) {
+                        console.log("Should this be happening?!?!?");
                         this.value = 0;
                     } else {
                         if (humanPlayer) {
@@ -150,7 +162,7 @@ class MinimaxNode {
                         }                        
                     }
                 }
-                
+                //console.log(getDepthString(humanPlayer, depth) + "INCOMPLETE col = ", col, " this.value = ", this.value);
                 break;
             }
         }
@@ -195,6 +207,16 @@ function setTopLabel(label_text) {
     fill(0);     // Black
     text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
 }
+
+function setTopLabelRGB(label_text, r, g, b) {
+    stroke(r,g,b); // White
+    fill(r,g,b);   // White
+    rect(0, 0, CANVAS_WIDTH, TOP_LABEL_HEIGHT);
+    stroke(0);   // Black
+    fill(0);     // Black
+    text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
+}
+
 
 /**************************************************
  * setBottomLabel()
@@ -287,11 +309,11 @@ function drawBoard() {
             switch(checkBoardState(board, animatingCol)) {
                 case HUMAN_WINS : {
                     isGameComplete = true;
-                    setTopLabel("HUMAN WINS!");
+                    setTopLabelRGB("HUMAN WINS!", 255, 0, 0); // Red
                     break;
                 }
                 case COMPUTER_WINS : {
-                    setTopLabel("COMPUTER WINS!");
+                    setTopLabelRGB("COMPUTER WINS!", 255, 255, 0); // Yelllow
                     isGameComplete = true;
                     break;
                 }
@@ -320,11 +342,11 @@ function drawBoard() {
 
 function drawCell(col, row, cellType) {
     if (cellType == HUMAN_CELL) {
-        fill(255, 0, 0);
+        fill(255, 0, 0);    // Red
     } else if (cellType == COMPUTER_CELL) {
-        fill(255, 255, 0);
+        fill(255, 255, 0);  // Yellow
     } else {
-        fill(255);
+        fill(255);          // White
     }    
     
     ellipse(BOARD_LEFT_MARGIN + (col * CELL_WIDTH) + (CELL_WIDTH / 2),
@@ -343,6 +365,8 @@ function checkBoardState(someBoard, latestCol) {
         latestRow++; 
     }
     const latestPiece = someBoard[latestCol][latestRow];
+    
+    //console.log("Checking board for ", latestPiece == HUMAN_CELL ? "HUMAN" : "COMPUTER");
     
     // Horizontal check
     var horizontalCount = 1;
@@ -471,4 +495,7 @@ function getComputerMove(){
 
 function initialiseBoard() {
    board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
+   //board[0][5] = HUMAN_CELL;
+   //board[1][5] = HUMAN_CELL;
+   //board[2][5] = HUMAN_CELL;
 }
