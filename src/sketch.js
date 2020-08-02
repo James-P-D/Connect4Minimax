@@ -46,6 +46,10 @@ var isGameComplete = false;
 var animatingCol = -1;
 var animatingRow = -1;
 
+/**************************************************
+ * cloneBoard()
+ **************************************************/
+
 function cloneBoard(baseBoard) {
     newBoard = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL));
     for (let col = 0; col < COLS; col++) {
@@ -69,10 +73,15 @@ class MinimaxTree {
         var bestValue = Number.MIN_SAFE_INTEGER;
         var bestCol = 0;
         
+        // For every column..
         for (let col = 0; col < COLS; col++) {
+            // ..if the column has empty cells..
             if (board[col][0] == EMPTY_CELL) {
+                // ..calculate the node
                 let tempNode = new MinimaxNode(cloneBoard(this.treeBoard), col, false, 0);
                 console.log("col = ", col, " tempNode.nodeValue = ", tempNode.nodeValue);
+                
+                // If we find a better move than the one we have saved, then update the bestCol
                 if (tempNode.nodeValue > bestValue) {
                     bestValue = tempNode.nodeValue;
                     bestCol = col;
@@ -89,41 +98,50 @@ class MinimaxTree {
 
 class MinimaxNode {    
     constructor(nodeBoard, col, humanPlayer, depth) {        
+        // Update the board with a cell at the lowest row of column 'col'
         var row = 0;
         while((nodeBoard[col][row] == EMPTY_CELL) && (row < ROWS)) {
             row++;
-        }
-        
+        }        
         nodeBoard[col][row-1] = humanPlayer ? HUMAN_CELL : COMPUTER_CELL;
 
+        // Check the status of the board (human win, computer win, etc.
         switch (checkBoardState(nodeBoard, col)) {
             case COMPUTER_WINS : {
+                // Set a high value
                 this.value = 100000 - depth;
                 break;               
             }
             case HUMAN_WINS : {
+                // Set a low value
                 this.value = -100000 + depth;
                 break;               
             }
             case DRAW : {
+                // Set a neutral value
                 this.value = 0 - depth;
                 break;
             }
             case INCOMPLETE: {
                 if (depth >= MAX_DEPTH) {
+                    // If we can't search any deeper, set a neutral value..
                     this.value = 0;//- depth
                 } else {
+                    // ..otherwise, for every column with spaces, calculate the node for the next move
                     this.childNodes = [];
                     for (let col = 0; col < COLS; col++) {
                         if (nodeBoard[col][0] == EMPTY_CELL) {
+                            // Calculate value for the next node. Remember to invert 'humanPlayer' and increment 'depth'
                             this.childNodes.push(new MinimaxNode(cloneBoard(nodeBoard), col, !humanPlayer, depth + 1));
                         }
                     }
                     
-                    if(this.childNodes.length == 0) {
+                    if (this.childNodes.length == 0) {
+                        // If there were no child nodes, set the value to neutral
                         this.value = 0;
                     } else {
                         if (humanPlayer) {
+                            // Get the max node
                             this.value = Number.MIN_SAFE_INTEGER;
                             for (let i = 0; i < this.childNodes.length; i++) {
                                 if (this.childNodes[i].nodeValue > this.value) {
@@ -131,6 +149,7 @@ class MinimaxNode {
                                 }
                             }
                         } else {
+                            // Get the min node
                             this.value = Number.MAX_SAFE_INTEGER;
                             for (let i = 0; i < this.childNodes.length; i++) {
                                 if (this.childNodes[i].nodeValue < this.value) {
@@ -207,16 +226,18 @@ function setBottomLabel(label_text) {
  **************************************************/
  
 function mousePressed() {
+    // Check to see if mouse is over a drop column
     const col = getOverCellColumn();
     if (col != -1) {
         animatingCol = col;
         animatingRow = -1;
     } else if ((mouseY > BOARD_TOP_MARGIN + BOARD_HEIGHT) && (mouseY < BOARD_TOP_MARGIN + BOARD_HEIGHT + BOTTOM_LABEL_HEIGHT)) {
-        humanGoesFirst = !humanGoesFirst;
-        isCurrentTurnHuman = humanGoesFirst;
-        initialiseBoard();
-        isGameComplete = false;
-        loop();
+        // Also check if mouse is over the 'RESET' button
+        humanGoesFirst = !humanGoesFirst;    // Toggle the humanGoesFirst flag so that the other player starts the next game
+        isCurrentTurnHuman = humanGoesFirst; // And set the move turn
+        initialiseBoard();                   // Clear the board
+        isGameComplete = false;              // Set the isGameComplete flag so we can resume
+        loop();                              // Finally, restart the draw() loop
     }
 }
 
@@ -226,9 +247,12 @@ function mousePressed() {
 
 function getOverCellColumn() {
     if (isCurrentTurnHuman) {
+        // Check if mouse is over a drop column
         if ((mouseY > TOP_LABEL_HEIGHT) && (mouseY < BOARD_TOP_MARGIN)) {
             const col = Math.floor((mouseX - BOARD_LEFT_MARGIN) / CELL_WIDTH);
             if ((col >= 0) && (col < COLS)) {
+                
+                // Only return the column number if there are actually spaces into which we can drop a disk
                 if (board[col][0] == EMPTY_CELL) {
                     return col;
                 }
@@ -236,6 +260,7 @@ function getOverCellColumn() {
         }
     }
     
+    // Return -1 if it isn't
     return -1;
 }
 
@@ -280,6 +305,7 @@ function drawBoard() {
                 drawCell(animatingCol, -1, EMPTY_CELL);
             }
             
+            // Update the label and isGameComplete flag if someone has won, or if there is a draw
             switch(checkBoardState(board, animatingCol)) {
                 case HUMAN_WINS : {
                     isGameComplete = true;
@@ -297,11 +323,14 @@ function drawBoard() {
                     break;
                 }
                 case INCOMPLETE : {
+                    // If noone has won yet, and it still isn't a draw, change turns
                     isCurrentTurnHuman = !isCurrentTurnHuman;
                 }
             }
+            // Set the animatingCol back to -1 since we are done animating
             animatingCol = -1;
-        }        
+        }
+        // Incrememnt the animatingRow field so that we next draw the disk on the next row
         animatingRow++;
     }
 }
@@ -330,6 +359,7 @@ function drawCell(col, row, cellType) {
  **************************************************/
 
 function checkBoardState(someBoard, latestCol) {
+    // Get the location of the most recently dropped disk.
     var latestRow = 0;
     while (someBoard[latestCol][latestRow] == EMPTY_CELL) {
         latestRow++; 
@@ -435,9 +465,11 @@ function checkBoardState(someBoard, latestCol) {
  **************************************************/
 
 function draw() {
+    // If the game is complete, disable the loop
     if (isGameComplete) {
         noLoop();
     } else {
+        // ..otherwise, draw the board, and if we aren't animating a move, then it must be the computer's turn
         drawBoard()
         if ((!isCurrentTurnHuman) && (animatingCol == -1)) {
             animatingCol = getComputerMove(board);
