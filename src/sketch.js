@@ -35,7 +35,7 @@ const HUMAN_WINS = 1
 const COMPUTER_WINS = 2
 const DRAW = 3
 
-const MAX_DEPTH = 4;
+const MAX_DEPTH = 5;
 
 /**************************************************
  * GLOBALS
