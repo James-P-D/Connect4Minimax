@@ -1,5 +1,3 @@
-// TODO: Do we need to check for Draw? Not sure what will happen with minimax search if there are no free cells left..
-
 const COLS = 7
 const ROWS = 6
 
@@ -58,7 +56,6 @@ function cloneBoard(baseBoard) {
     return newBoard;
 }
 
-
 /**************************************************
  * MinimaxTree Class
  **************************************************/
@@ -85,16 +82,12 @@ class MinimaxTree {
         return bestCol;
     }
 }
-function getDepthString(humanPlayer, depth) {
-    let retVal = humanPlayer ? "HUMAN: " : "COMPU: ";
-    
-    for(let i =0; i< depth; i++) {
-        retVal += "    ";
-    }
-    return retVal;
-}
-class MinimaxNode {
-    
+
+/**************************************************
+ * MinimaxNode Class
+ **************************************************/
+
+class MinimaxNode {    
     constructor(nodeBoard, col, humanPlayer, depth) {        
         var row = 0;
         while((nodeBoard[col][row] == EMPTY_CELL) && (row < ROWS)) {
@@ -102,32 +95,18 @@ class MinimaxNode {
         }
         
         nodeBoard[col][row-1] = humanPlayer ? HUMAN_CELL : COMPUTER_CELL;
-        
-        /*
-        var totalCells = 0;
-        for(let i =0; i<COLS; i++) {
-            for(let j =0; j<ROWS; j++){
-                if(nodeBoard[i][j] != EMPTY_CELL) {
-                    totalCells++;
-                }
-            }
-        }
-        console.log("minimaxNode totalCells = ", totalCells);
-        */
+
         switch (checkBoardState(nodeBoard, col)) {
             case COMPUTER_WINS : {
                 this.value = 100000 - depth;
-                //console.log(getDepthString(humanPlayer, depth) + "COMPUTER WIN col = ", col, " this.value = ", this.value);
                 break;               
             }
             case HUMAN_WINS : {
                 this.value = -100000 + depth;
-                //console.log(getDepthString(humanPlayer, depth) + "HUMAN WIN col = ", col, " this.value = ", this.value);
                 break;               
             }
             case DRAW : {
                 this.value = 0 - depth;
-                //console.log(getDepthString(humanPlayer, depth) + "DRAW col = ", col, " this.value = ", this.value);
                 break;
             }
             case INCOMPLETE: {
@@ -142,7 +121,6 @@ class MinimaxNode {
                     }
                     
                     if(this.childNodes.length == 0) {
-                        console.log("Should this be happening?!?!?");
                         this.value = 0;
                     } else {
                         if (humanPlayer) {
@@ -162,17 +140,14 @@ class MinimaxNode {
                         }                        
                     }
                 }
-                //console.log(getDepthString(humanPlayer, depth) + "INCOMPLETE col = ", col, " this.value = ", this.value);
                 break;
             }
-        }
-        
+        }        
     }
     
     get nodeValue() {
         return this.value;
-    }
-    
+    }    
 }
 
 /**************************************************
@@ -216,7 +191,6 @@ function setTopLabelRGB(label_text, r, g, b) {
     fill(0);     // Black
     text(label_text, CANVAS_WIDTH / 2, TOP_LABEL_HEIGHT / 2);    
 }
-
 
 /**************************************************
  * setBottomLabel()
@@ -325,15 +299,11 @@ function drawBoard() {
                 case INCOMPLETE : {
                     isCurrentTurnHuman = !isCurrentTurnHuman;
                 }
-                
             }
             animatingCol = -1;
         }        
         animatingRow++;
-        
     }
-    
-    //console.log("------")
 }
 
 /**************************************************
@@ -365,8 +335,6 @@ function checkBoardState(someBoard, latestCol) {
         latestRow++; 
     }
     const latestPiece = someBoard[latestCol][latestRow];
-    
-    //console.log("Checking board for ", latestPiece == HUMAN_CELL ? "HUMAN" : "COMPUTER");
     
     // Horizontal check
     var horizontalCount = 1;
@@ -485,7 +453,7 @@ function draw() {
 function getComputerMove(){
     var tree = new MinimaxTree(board);
     var col = tree.bestMove;
-    console.log("BEST MOVE COL IS ", col);
+    console.log("Best move is col = ", col);
     return col;    
 }
 
@@ -495,7 +463,4 @@ function getComputerMove(){
 
 function initialiseBoard() {
    board = [...Array(COLS)].map(() => [...Array(ROWS)].map(() => EMPTY_CELL))
-   //board[0][5] = HUMAN_CELL;
-   //board[1][5] = HUMAN_CELL;
-   //board[2][5] = HUMAN_CELL;
 }
